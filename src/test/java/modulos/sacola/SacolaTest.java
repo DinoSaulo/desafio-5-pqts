@@ -1,62 +1,52 @@
 package modulos.sacola;
 
+import modulos.paginas.*;
 import org.junit.Assert;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.Keys;
+import modulos.paginas.BuscaProdutoPage;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @DisplayName("Testes de produtos adicionados na sacola do Magalu")
 public class SacolaTest {
 
     private WebDriver navegador;
 
-    @Test
-    public void test(){
+
+    @BeforeEach
+    public void beforeEach(){
         // Acessando o site da magalu
         System.setProperty("webdriver.chrome.driver", "C:\\drivers\\chromedriver100\\chromedriver.exe");
         this.navegador = new ChromeDriver();
         this.navegador.manage().window().maximize();
         this.navegador.get("https://www.magazineluiza.com.br/");
+    }
 
-        WebElement inputBusca = this.navegador.findElement(By.id("input-search"));
-        WebElement btnPesquisar = this.navegador.findElement(By.cssSelector("[data-testid='search-submit']"));
+    @Test
+    public void testAdicionarProdutoNaSacola(){
+        BuscaProdutoPage buscaProdutoPage = new BuscaProdutoPage(navegador);
+        buscaProdutoPage.preencherCampoBusca("011338601");
 
-        // digitar na busca
-        inputBusca.click();
-        inputBusca.sendKeys("011338601");
-
-        // clicar em buscar
-        btnPesquisar.click();
         this.navegador.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
 
-        // clicar na lista de produtos
-        WebElement produto = this.navegador.findElement(By.cssSelector("[data-testid='product-card-content']"));
-        produto.click();
+        ListaProdutoPage listaProdutoPage = new ListaProdutoPage(navegador);
+        listaProdutoPage.clicarEmProduto();
 
-        //selecionar a voltagem
-        WebElement inputVoltagem = this.navegador.findElement(By.id("variation-label"));
-        inputVoltagem.click();
-        this.navegador.manage().timeouts().implicitlyWait(Duration.ofSeconds(1));
-        this.navegador.findElement(By.xpath("//*[text()=' 110V  ']")).click();
+        ProdutoPage produtoPage = new ProdutoPage(navegador);
+        produtoPage.selecionarVoltagem("110V");
 
-        // clicar no botão de adicionar a sacola
-        WebElement btnAdicionar = this.navegador.findElement(By.className("js-add-cart-button"));
-        btnAdicionar.click();
+        produtoPage.adicionarNaSacola();
 
-        this.navegador.manage().timeouts().implicitlyWait(Duration.ofSeconds(1));
+        this.navegador.manage().timeouts().implicitlyWait(Duration.ofSeconds(2));
 
-        // clicar no botão continuar
-        WebElement btnContinuar = this.navegador.findElement(By.className("price-warranty__btn--continue"));
-        btnContinuar.click();
+        GarantiaProdutoPage garantiaProdutoPage = new GarantiaProdutoPage(navegador);
+        garantiaProdutoPage.clicarContinuar();
 
         this.navegador.manage().timeouts().implicitlyWait(Duration.ofSeconds(2));
 
@@ -71,5 +61,11 @@ public class SacolaTest {
         // validar a voltagem
         String tituloProduto = this.navegador.findElement(By.className("BasketItemProduct-info-title")).getText();
         Assert.assertEquals(tituloProduto.contains("110V"), true);
+
+    }
+
+    @AfterEach
+    public void afterEach(){
+        navegador.quit();
     }
 }
